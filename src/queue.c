@@ -7,7 +7,11 @@ int empty(struct queue_t * q) {
 }
 
 void enqueue(struct queue_t * q, struct pcb_t * proc) {
-	/* TODO: put a new process to queue [q] */	
+	/* TODO: put a new process to queue [q] */
+	if(q->size == 0){
+		q[0] = proc;
+	}
+	q[q->size++] = proc;
 }
 
 struct pcb_t * dequeue(struct queue_t * q) {
