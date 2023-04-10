@@ -15,21 +15,30 @@ void enqueue(struct queue_t * q, struct pcb_t * proc) {
 }
 
 struct pcb_t * dequeue(struct queue_t * q) {
-	/* TODO: return a pcb whose prioprity is the highest
+	/* TODO: return a pcb whose priority is the highest
 	 * in the queue [q] and remember to remove it from q
 	 * */
 	if(q->size == 0) return NULL;
-	pcb_t * proc = q->proc[0];
-	if(q->size == 1){
-	q->proc[0] = NULL;
-	}else{
-		for(int i = 0; i < q->size - 1; i++){
-			q->proc[i] = q->proc[i+1];
+	struct pcb_t * temp_proc = q->proc[0];
+	int max_priority = q->proc[0]->priority;
+	int max_idx = 0;
+
+	// Find pcb whose priority is highest (lower priority value is higher priority)
+	for (int i = 1; i < q->size; i++){
+		if (q->proc[i]->priority < max_priority){
+			max_priority = q->proc[i]->priority;
+			temp_proc = q->proc[i];
+			max_idx = i;
 		}
-		q->proc[q->size-1] = NULL;
-		
-	}	
-	q->size --;	
-	return proc;
+	}
+
+	// Remove 
+	for (int i = max_idx; i < q->size - 1; i++){
+		q->proc[i] = q->proc[i+1];
+	}
+	q->proc[q->size - 1] = NULL;
+	q->size --;
+	return temp_proc;
+
 }
 
