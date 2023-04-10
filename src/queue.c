@@ -29,7 +29,7 @@ struct pcb_t * dequeue(struct queue_t * q) {
 		q->proc[q->size-1] = NULL;
 		
 	}	
-	q->size ++;	
+	q->size --;	
 	return proc;
 }
 
