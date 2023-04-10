@@ -9,6 +9,8 @@ static struct queue_t ready_queue;
 static struct queue_t run_queue;
 static pthread_mutex_t queue_lock;
 
+extern int time_slot; //Lấy giá trị quantum time trong file os.c
+
 #ifdef MLQ_SCHED
 static struct queue_t mlq_ready_queue[MAX_PRIO];
 #endif
@@ -47,7 +49,27 @@ struct pcb_t * get_mlq_proc(void) {
 	/*TODO: get a process from PRIORITY [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
+	static unsigned long curr_prio = 0; //Giữ vị trí queue đang xét 
+	static unsigned long curr_slot = MAX_PRIO - curr_prio;
+	
+	while (curr_prio < MAX_PRIO)
+	{
+		while (curr_slot > 0 && !empty(&mlq_ready_queue[curr_prio])) 
+		{
+            		pthread_mutex_lock(&queue_lock);
+            		proc = dequeue(&mlq_ready_queue[curr_prio]);
+            		pthread_mutex_unlock(&queue_lock);
 
+            		if (proc != NULL) 
+			{
+                		curr_slot = curr_slot - time_slot;
+                		return proc;
+            		}
+        	}
+		curr_prio++;
+		curr_slot = MAX_PRIO - curr_prio;
+	}
+	curr_prio = 0;
 	return proc;	
 }
 
@@ -80,6 +102,27 @@ struct pcb_t * get_proc(void) {
 	/*TODO: get a process from [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
+	static unsigned long curr_prio = 0; //Giữ vị trí queue đang xét 
+	static unsigned long curr_slot = MAX_PRIO - curr_prio;
+	
+	while (curr_prio < MAX_PRIO)
+	{
+		while (curr_slot > 0 && !empty(&mlq_ready_queue[curr_prio])) 
+		{
+            		pthread_mutex_lock(&queue_lock);
+            		proc = dequeue(&mlq_ready_queue[curr_prio]);
+            		pthread_mutex_unlock(&queue_lock);
+
+            		if (proc != NULL) 
+			{
+                		curr_slot = curr_slot - time_slot;
+                		return proc;
+            		}
+        	}
+		curr_prio++;
+		curr_slot = MAX_PRIO - curr_prio;
+	}
+	curr_prio = 0;
 	return proc;
 }
 
