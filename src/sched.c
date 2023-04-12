@@ -15,6 +15,7 @@ extern int time_slot; //Lấy giá trị quantum time trong file os.c
 static struct queue_t mlq_ready_queue[MAX_PRIO];
 #endif
 
+
 int queue_empty(void) {
 #ifdef MLQ_SCHED
 	unsigned long prio;
@@ -29,8 +30,10 @@ void init_scheduler(void) {
 #ifdef MLQ_SCHED
     int i ;
 
-	for (i = 0; i < MAX_PRIO; i ++)
+	for (i = 0; i < MAX_PRIO; i ++){
 		mlq_ready_queue[i].size = 0;
+		mlq_ready_queue[i].time_slot = MAX_PRIO - i; // slot = Max_prio - level_queue.
+	}
 #endif
 	ready_queue.size = 0;
 	run_queue.size = 0;
@@ -49,27 +52,45 @@ struct pcb_t * get_mlq_proc(void) {
 	/*TODO: get a process from PRIORITY [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
-	static unsigned long curr_prio = 0; //Giữ vị trí queue đang xét 
-	static unsigned long curr_slot = MAX_PRIO - curr_prio;
-	
-	while (curr_prio < MAX_PRIO)
-	{
-		while (curr_slot > 0 && !empty(&mlq_ready_queue[curr_prio])) 
-		{
-            		pthread_mutex_lock(&queue_lock);
-            		proc = dequeue(&mlq_ready_queue[curr_prio]);
-            		pthread_mutex_unlock(&queue_lock);
-
-            		if (proc != NULL) 
-			{
-                		curr_slot = curr_slot - time_slot;
-                		return proc;
-            		}
-        	}
+		unsigned long curr_prio = 0; //prio cua queue hien tai
+		// unsigned long curr_slot = MAX_PRIO - curr_prio; //non usefull
+	while(curr_prio < MAX_PRIO){
+		if(empty(&mlq_ready_queue[curr_prio]) != 0) break;
+		if(mlq_ready_queue[curr_prio] <= 0){
+			curr_prio++;
+			continue;
+		} 
+		// get proc 
+		pthread_mutex_lock(&queue_lock);
+		proc = mlq_ready_queue[curr_prio];
+		mlq_ready_queue[curr_prio].time_slot -= time_slot; // decrease slot
+		pthread_mutex_unlock(&queue_lock);
+		if(proc != NULL) return proc;
 		curr_prio++;
-		curr_slot = MAX_PRIO - curr_prio;
 	}
-	curr_prio = 0;
+	if(proc == NULL && !empty(&mlq_ready_queue[curr_prio])) {
+		pthread_mutex_lock(&queue_lock);
+		for(int i = 0; i < MAX_PRIO; i++) reset_slot(&mlq_ready_queue[i], MAX_PRIO - i);
+		pthread_mutex_unlock(&queue_lock);
+		
+		curr_prio = 0;
+		while(curr_prio < MAX_PRIO){
+			if(empty(&mlq_ready_queue[curr_prio])) break;
+			if(mlq_ready_queue[curr_prio] <= 0){
+				curr_prio++;
+				continue;
+			}	 
+			// get proc 
+			//pthread_mutex_lock(&queue_lock);
+			pthread_mutex_lock(&queue_lock);
+			proc = mlq_ready_queue[curr_prio];
+			mlq_ready_queue[curr_prio].time_slot -= time_slot; // decrease slot
+			pthread_mutex_unlock(&queue_lock);
+			//pthread_mutex_unlock(&queue_lock);
+			if(proc != NULL) return proc;
+			curr_prio++;
+		}
+	}
 	return proc;	
 }
 
@@ -102,27 +123,12 @@ struct pcb_t * get_proc(void) {
 	/*TODO: get a process from [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
-	static unsigned long curr_prio = 0; //Giữ vị trí queue đang xét 
-	static unsigned long curr_slot = MAX_PRIO - curr_prio;
 	
-	while (curr_prio < MAX_PRIO)
-	{
-		while (curr_slot > 0 && !empty(&mlq_ready_queue[curr_prio])) 
-		{
-            		pthread_mutex_lock(&queue_lock);
-            		proc = dequeue(&mlq_ready_queue[curr_prio]);
-            		pthread_mutex_unlock(&queue_lock);
-
-            		if (proc != NULL) 
-			{
-                		curr_slot = curr_slot - time_slot;
-                		return proc;
-            		}
-        	}
-		curr_prio++;
-		curr_slot = MAX_PRIO - curr_prio;
+	if(!empty(&ready_queue)){
+		pthread_mutex_lock(&queue_lock);
+		proc = dequeue(&ready_queue);
+		pthread_mutex_unlock(&queue_lock);
 	}
-	curr_prio = 0;
 	return proc;
 }
 
