@@ -16,7 +16,7 @@ void init_scheduler(void);
 void finish_scheduler(void);
 
 /* Get the next process from ready queue */
-struct pcb_t * get_proc(void);
+struct pcb_t * get_proc(int time_slot);
 
 /* Put a process back to run queue */
 void put_proc(struct pcb_t * proc);

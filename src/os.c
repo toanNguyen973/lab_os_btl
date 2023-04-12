@@ -38,7 +38,7 @@ static void * cpu_routine(void * args) {
 		if (proc == NULL) {
 			/* No process is running, the we load new process from
 		 	* ready queue */
-			proc = get_proc();
+			proc = get_proc(time_slot);
 			if (proc == NULL) {
                            next_slot(timer_id);
                            continue; /* First load failed. skip dummy load */
@@ -48,14 +48,14 @@ static void * cpu_routine(void * args) {
 			printf("\tCPU %d: Processed %2d has finished\n",
 				id ,proc->pid);
 			free(proc);
-			proc = get_proc();
+			proc = get_proc(time_slot);
 			time_left = 0;
 		}else if (time_left == 0) {
 			/* The process has done its job in current time slot */
 			printf("\tCPU %d: Put process %2d to run queue\n",
 				id, proc->pid);
 			put_proc(proc);
-			proc = get_proc();
+			proc = get_proc(time_slot);
 		}
 		
 		/* Recheck process status after loading new process */
