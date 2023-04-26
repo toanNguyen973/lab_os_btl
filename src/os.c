@@ -33,12 +33,13 @@ static void * cpu_routine(void * args) {
 	/* Check for new process in ready queue */
 	int time_left = 0;
 	struct pcb_t * proc = NULL;
+	
 	while (1) {
 		/* Check the status of current process */
 		if (proc == NULL) {
 			/* No process is running, the we load new process from
 		 	* ready queue */
-			proc = get_proc(time_slot);
+			proc = get_proc();
 			if (proc == NULL) {
                            next_slot(timer_id);
                            continue; /* First load failed. skip dummy load */
@@ -48,16 +49,15 @@ static void * cpu_routine(void * args) {
 			printf("\tCPU %d: Processed %2d has finished\n",
 				id ,proc->pid);
 			free(proc);
-			proc = get_proc(time_slot);
+			proc = get_proc();
 			time_left = 0;
 		}else if (time_left == 0) {
 			/* The process has done its job in current time slot */
 			printf("\tCPU %d: Put process %2d to run queue\n",
 				id, proc->pid);
 			put_proc(proc);
-			proc = get_proc(time_slot);
+			proc = get_proc();
 		}
-		
 		/* Recheck process status after loading new process */
 		if (proc == NULL && done) {
 			/* No process to run, exit */

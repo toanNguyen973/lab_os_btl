@@ -9,7 +9,6 @@
 struct queue_t {
 	struct pcb_t * proc[MAX_QUEUE_SIZE];
 	int size;
-	int time_slot; //store slot
 };
 
 void enqueue(struct queue_t * q, struct pcb_t * proc);
@@ -17,6 +16,6 @@ void enqueue(struct queue_t * q, struct pcb_t * proc);
 struct pcb_t * dequeue(struct queue_t * q);
 
 int empty(struct queue_t * q);
-void reset_slot(struct queue_t *q, int a);
+
 #endif
 

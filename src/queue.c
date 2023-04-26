@@ -12,6 +12,7 @@ void enqueue(struct queue_t * q, struct pcb_t * proc) {
 		q->proc[q->size] = proc;
 		q->size ++;
 	}
+	
 }
 
 struct pcb_t * dequeue(struct queue_t * q) {
@@ -20,20 +21,22 @@ struct pcb_t * dequeue(struct queue_t * q) {
 	 * */
 	if(q->size == 0) return NULL;
 	struct pcb_t * proc = q->proc[0];
-	if(q->size == 1){
-	q->proc[0] = NULL;
-	}else{
-		for(int i = 0; i < q->size - 1; i++){
+		
+
+	if(q->size == 1)
+	{
+		q->proc[0] = NULL;
+	}
+	else
+	{
+		for(int i = 0; i < q->size - 1; i++)
+		{
 			q->proc[i] = q->proc[i+1];
 		}
 		q->proc[q->size-1] = NULL;
 		
 	}	
-	q->size --;	
+	q->size --;
 	return proc;
 }
 
-//reset slot for future slot.
-void reset_slot(struct queue_t *q, int a){
-	q->time_slot = a;
-}
